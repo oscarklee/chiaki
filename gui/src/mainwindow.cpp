@@ -82,7 +82,7 @@ MainWindow::MainWindow(Settings *settings, QWidget *parent)
 	auto layout = new QVBoxLayout();
 	main_widget->setLayout(layout);
 	setCentralWidget(main_widget);
-	layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
 
 	auto LoadIcon = [this](const QString &filename) {
 		return QIcon(new IconEngine(filename));
@@ -147,7 +147,7 @@ MainWindow::MainWindow(Settings *settings, QWidget *parent)
 	connect(settings_action, &QAction::triggered, this, &MainWindow::ShowSettings);
 
 	auto quit_action = new QAction(tr("Quit"), this);
-	quit_action->setShortcut(Qt::CTRL + Qt::Key_Q);
+    quit_action->setShortcut(Qt::CTRL | Qt::Key_Q);
 	addAction(quit_action);
 	connect(quit_action, &QAction::triggered, this, &MainWindow::Quit);
 

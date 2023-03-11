@@ -17,6 +17,13 @@ for Linux, FreeBSD, OpenBSD, NetBSD, Android, macOS, Windows, Nintendo Switch an
 As all relevant features are implemented, this project is considered to be finished and in maintenance mode only.
 No major updates are planned and contributions are only accepted in special cases.
 
+## Third Party Engineer Notes
+
+* Many classes were changed to support QT6
+* QT6.4.2 contains a bug with the audio in windows, for that reason is required copy the file mfplat.dll in Windows/System32 to
+  the executable directory (build/gui) with the name mfplat.dll.dll, more info here 
+  ["Failed to setup resampler" when starting QAudioSink](https://stackoverflow.com/questions/74500509/failed-to-setup-resampler-when-starting-qaudiosink)
+
 ## Installing
 
 You can either download a pre-built release or build Chiaki from source.

@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.2)
 
 project(chiaki)
 
+# vcpkg
+set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+set(VCPKG_TARGET_TRIPLET "x64-windows")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}")
+
 # Like option(), but the value can also be AUTO
 macro(tri_option name desc default)
     set("${name}" "${default}" CACHE STRING "${desc}")
