@@ -70,7 +70,7 @@ static void MigrateSettings(QSettings *settings)
     }
 }
 
-Settings::Settings(QObject *parent) : QObject(parent)
+Settings::Settings(QObject *parent) : QObject(parent), settings("settings.ini", QSettings::IniFormat)
 {
     MigrateSettings(&settings);
     manual_hosts_id_next = 0;
