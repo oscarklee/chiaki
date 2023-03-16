@@ -29,14 +29,52 @@ int main(int argc, char *argv[]) { return real_main(argc, argv); }
 #include <QCommandLineParser>
 #include <QMap>
 #include <QSurfaceFormat>
+#include <QMessageBox>
 
 Q_DECLARE_METATYPE(ChiakiLogLevel)
 
+Settings settings;
 DiscoveryManager discovery_manager;
 
-void UpdateDisplayServers()
+void AlertAndQuit(const QString &message)
 {
+    QMessageBox::critical(nullptr, "Error", message, QMessageBox::Ok);
+    QApplication::exit(1);
+}
 
+void FindHostAndStream()
+{
+    QList<DiscoveryHost> hosts = discovery_manager.GetHosts();
+    if (hosts.isEmpty())
+    {
+        AlertAndQuit("No host found");
+        return;
+    }
+
+    DiscoveryHost host = hosts.first();
+    if (host.state != CHIAKI_DISCOVERY_HOST_STATE_READY)
+    {
+        AlertAndQuit("Console is not ready");
+        return;
+    }
+
+    if (!settings.GetRegisteredHostRegistered(host.GetHostMAC()))
+    {
+        AlertAndQuit("No host registered");
+        return;
+    }
+
+    RegisteredHost registered_host = settings.GetRegisteredHost(host.GetHostMAC());
+    StreamSessionConnectInfo info(
+            &settings,
+            registered_host.GetTarget(),
+            host.host_addr,
+            registered_host.GetRPRegistKey(),
+            registered_host.GetRPKey(),
+            false,
+            TransformMode::Fit);
+
+    new StreamWindow(info);
 }
 
 int real_main(int argc, char *argv[])
@@ -63,11 +101,12 @@ int real_main(int argc, char *argv[])
 
 	QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/icons/chiaki.svg"));
-    Settings settings;
 
-    QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, &UpdateDisplayServers);
+    QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, &FindHostAndStream);
+    QObject::connect(&settings, &Settings::RegisteredHostsUpdated, &FindHostAndStream);
+    QObject::connect(&settings, &Settings::ManualHostsUpdated, &FindHostAndStream);
 
-    MainWindow main_window(&settings);
-    main_window.show();
+    settings.SetDiscoveryEnabled(true);
+    discovery_manager.SetActive(true);
     return app.exec();
 }
