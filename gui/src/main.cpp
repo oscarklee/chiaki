@@ -44,31 +44,25 @@ void AlertAndQuit(const QString &message)
 
 void FindHostAndStream()
 {
-    QList<DiscoveryHost> hosts = discovery_manager.GetHosts();
+    QList<ManualHost> hosts = settings.GetManualHosts();
     if (hosts.isEmpty())
     {
-        AlertAndQuit("No host found");
+        AlertAndQuit("No manual host added");
         return;
     }
 
-    DiscoveryHost host = hosts.first();
-    if (host.state != CHIAKI_DISCOVERY_HOST_STATE_READY)
-    {
-        AlertAndQuit("Console is not ready");
-        return;
-    }
-
-    if (!settings.GetRegisteredHostRegistered(host.GetHostMAC()))
+    ManualHost host = hosts.first();
+    if (!settings.GetRegisteredHostRegistered(host.GetMAC()))
     {
         AlertAndQuit("No host registered");
         return;
     }
 
-    RegisteredHost registered_host = settings.GetRegisteredHost(host.GetHostMAC());
+    RegisteredHost registered_host = settings.GetRegisteredHost(host.GetMAC());
     StreamSessionConnectInfo info(
             &settings,
             registered_host.GetTarget(),
-            host.host_addr,
+            host.GetHost(),
             registered_host.GetRPRegistKey(),
             registered_host.GetRPKey(),
             false,
@@ -101,12 +95,8 @@ int real_main(int argc, char *argv[])
 
 	QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/icons/chiaki.svg"));
-
-    QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, &FindHostAndStream);
-    QObject::connect(&settings, &Settings::RegisteredHostsUpdated, &FindHostAndStream);
-    QObject::connect(&settings, &Settings::ManualHostsUpdated, &FindHostAndStream);
-
-    settings.SetDiscoveryEnabled(true);
-    discovery_manager.SetActive(true);
+    //FindHostAndStream();
+    MainWindow main_window(&settings);
+    main_window.show();
     return app.exec();
 }
