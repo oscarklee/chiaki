@@ -45,6 +45,8 @@ class DiscoveryManager : public QObject
 
 		void SetActive(bool active);
 
+        void DiscoverDevice(const QString &ip_address_str);
+
 		void SendWakeup(const QString &host, const QByteArray &regist_key, bool ps5);
 
 		const QList<DiscoveryHost> GetHosts() const { return hosts; }

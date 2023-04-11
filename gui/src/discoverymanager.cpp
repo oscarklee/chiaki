@@ -54,11 +54,11 @@ void DiscoveryManager::SetActive(bool active)
 		options.hosts_max = HOSTS_MAX;
 		options.host_drop_pings = DROP_PINGS;
 		options.cb = DiscoveryServiceHostsCallback;
-		options.cb_user = this;
+        options.cb_user = this;
 
-		sockaddr_in addr = {};
-		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = 0xffffffff; // 255.255.255.255
+        sockaddr_in addr = {};
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = 0xffffffff; // 255.255.255.255
 		options.send_addr = reinterpret_cast<sockaddr *>(&addr);
 		options.send_addr_size = sizeof(addr);
 
@@ -77,6 +77,38 @@ void DiscoveryManager::SetActive(bool active)
 		emit HostsUpdated();
 	}
 
+}
+
+void DiscoveryManager::DiscoverDevice(const QString &ip_address_str)
+{
+    ChiakiDiscoveryServiceOptions options;
+    options.ping_ms = PING_MS;
+    options.hosts_max = HOSTS_MAX;
+    options.host_drop_pings = DROP_PINGS;
+    options.cb = DiscoveryServiceHostsCallback;
+    options.cb_user = this;
+
+    sockaddr_in addr = {};
+    int result = inet_pton(AF_INET, ip_address_str.toLocal8Bit().data(), &addr.sin_addr);
+    if (result <= 0) {
+        if (result == 0) {
+            CHIAKI_LOGE(&log, "Error: IP With Invalid format.\n");
+        } else {
+            CHIAKI_LOGE(&log, "Error: The function inet_pton failed");
+        }
+        return;
+    }
+
+    addr.sin_family = AF_INET;
+    options.send_addr = reinterpret_cast<sockaddr *>(&addr);
+    options.send_addr_size = sizeof(addr);
+
+    ChiakiErrorCode err = chiaki_discovery_service_init(&service, &options, &log);
+    if(err != CHIAKI_ERR_SUCCESS)
+    {
+        CHIAKI_LOGE(&log, "DiscoveryManager failed to init Discovery Service");
+        return;
+    }
 }
 
 void DiscoveryManager::SendWakeup(const QString &host, const QByteArray &regist_key, bool ps5)

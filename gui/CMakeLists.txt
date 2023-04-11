@@ -57,7 +57,11 @@ add_executable(chiaki WIN32
 		include/controllermanager.h
 		src/controllermanager.cpp
 		include/loginpindialog.h
-		src/loginpindialog.cpp)
+                src/loginpindialog.cpp
+                include/vpnclient.h
+                src/vpnclient.cpp
+                src/progressdialog.cpp
+                include/progressdialog.h)
 target_include_directories(chiaki PRIVATE include)
 
 target_link_libraries(chiaki chiaki-lib)
@@ -68,6 +72,7 @@ endif()
 
 target_link_libraries(chiaki Qt6::Core Qt6::Widgets Qt6::Gui Qt6::Concurrent Qt6::Multimedia Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Svg)
 target_link_libraries(chiaki SDL2::SDL2)
+
 if(APPLE)
         target_link_libraries(chiaki Qt6::MacExtras)
 	target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_QT_MACEXTRAS)
@@ -92,6 +97,10 @@ set_target_properties(chiaki PROPERTIES
 		MACOSX_BUNDLE_GUI_IDENTIFIER "org.chiaki.chiaki"
 		MACOSX_BUNDLE_ICON_FILE chiaki.icns
 		RESOURCE "${RESOURCE_FILES}")
+
+add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/third-party/openvpn/openvpn.exe" $<TARGET_FILE_DIR:chiaki>)
+add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/third-party/openvpn/openvpn.ovpn" $<TARGET_FILE_DIR:chiaki>)
+add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/gui/settings.ini" $<TARGET_FILE_DIR:chiaki>)
 
 install(TARGETS chiaki
 		RUNTIME DESTINATION bin
