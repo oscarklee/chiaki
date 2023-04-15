@@ -2,7 +2,7 @@
 
 #include <host.h>
 
-#include <QSettings>
+#include <firestoresettings.h>
 
 RegisteredHost::RegisteredHost()
 {
@@ -38,7 +38,7 @@ RegisteredHost::RegisteredHost(const ChiakiRegisteredHost &chiaki_host)
 	memcpy(rp_key, chiaki_host.rp_key, sizeof(rp_key));
 }
 
-void RegisteredHost::SaveToSettings(QSettings *settings) const
+void RegisteredHost::SaveToSettings(FirestoreSettings *settings) const
 {
 	settings->setValue("target", (int)target);
 	settings->setValue("ap_ssid", ap_ssid);
@@ -52,7 +52,7 @@ void RegisteredHost::SaveToSettings(QSettings *settings) const
 	settings->setValue("rp_key", QByteArray((const char *)rp_key, sizeof(rp_key)));
 }
 
-RegisteredHost RegisteredHost::LoadFromSettings(QSettings *settings)
+RegisteredHost RegisteredHost::LoadFromSettings(FirestoreSettings *settings)
 {
 	RegisteredHost r;
 	r.target = (ChiakiTarget)settings->value("target").toInt();
@@ -96,7 +96,7 @@ ManualHost::ManualHost(int id, const ManualHost &o)
 {
 }
 
-void ManualHost::SaveToSettings(QSettings *settings) const
+void ManualHost::SaveToSettings(FirestoreSettings *settings) const
 {
 	settings->setValue("id", id);
 	settings->setValue("host", host);
@@ -104,7 +104,7 @@ void ManualHost::SaveToSettings(QSettings *settings) const
 	settings->setValue("registered_mac", QByteArray((const char *)registered_mac.GetMAC(), 6));
 }
 
-ManualHost ManualHost::LoadFromSettings(QSettings *settings)
+ManualHost ManualHost::LoadFromSettings(FirestoreSettings *settings)
 {
 	ManualHost r;
 	r.id = settings->value("id", -1).toInt();

@@ -44,6 +44,7 @@ class StreamWindow: public QMainWindow
 
 	private slots:
 		void SessionQuit(ChiakiQuitReason reason, const QString &reason_str);
+        void addCustomToolbarWithTimer();
 		void LoginPINRequested(bool incorrect);
 		void ToggleFullscreen();
 		void ToggleStretch();

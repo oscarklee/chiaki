@@ -6,6 +6,7 @@
 #include <chiaki/session.h>
 
 #include "host.h"
+#include "firestoresettings.h"
 
 #include <QSettings>
 #include <QAudioDevice>
@@ -41,7 +42,7 @@ class Settings : public QObject
     Q_OBJECT
 
     private:
-        QSettings settings;
+        FirestoreSettings settings;
 
         QMap<HostMAC, RegisteredHost> registered_hosts;
         QMap<int, ManualHost> manual_hosts;
@@ -125,7 +126,8 @@ class Settings : public QObject
         QMap<int, Qt::Key> GetControllerMapping();
         QMap<Qt::Key, int> GetControllerMappingForDecoding();
 
-    signals:
+        void init();
+signals:
         void RegisteredHostsUpdated();
         void ManualHostsUpdated();
 };

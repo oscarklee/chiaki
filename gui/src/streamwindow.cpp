@@ -9,6 +9,10 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QDesktopServices>
+#include <QHBoxLayout>
+#include <QSpacerItem>
+#include <QToolBar>
 #include <QAction>
 #include <QMenu>
 
@@ -86,6 +90,8 @@ void StreamWindow::Init()
 		setCentralWidget(bg_widget);
 	}
 
+    addCustomToolbarWithTimer();
+
 	grabKeyboard();
 
 	session->Start();
@@ -118,6 +124,53 @@ void StreamWindow::Init()
 		show();
 
 	UpdateTransformModeActions();
+}
+
+void StreamWindow::addCustomToolbarWithTimer()
+{
+    QLabel *counterLabel = new QLabel(this);
+    QTimer *timer = new QTimer(this);
+
+    timer->setInterval(1000);
+    int remainingSeconds = 1800;
+    connect(timer, &QTimer::timeout, this, [this, timer, counterLabel, remainingSeconds]() mutable {
+        remainingSeconds--;
+
+        int hours = remainingSeconds / 3600;
+        int minutes = (remainingSeconds % 3600) / 60;
+        int seconds = remainingSeconds % 60;
+
+        counterLabel->setText(QString("Time Left: %1:%2:%3")
+            .arg(hours, 2, 10, QLatin1Char('0'))
+            .arg(minutes, 2, 10, QLatin1Char('0'))
+            .arg(seconds, 2, 10, QLatin1Char('0')));
+
+        if (remainingSeconds == 0) {
+            timer->stop();
+            QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
+            this->Quit();
+        }
+    });
+    timer->start();
+
+    QToolBar *toolBar = new QToolBar(this);
+    toolBar->setMovable(false);
+    toolBar->setFloatable(false);
+    toolBar->setAllowedAreas(Qt::TopToolBarArea);
+
+    QAction *openWebPageAction = new QAction("Por favor, cuando puedas contesta una encuesta", this);
+    connect(openWebPageAction, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
+    });
+    toolBar->addAction(openWebPageAction);
+
+    QWidget *spacerWidget = new QWidget(this);
+    spacerWidget->setLayout(new QHBoxLayout());
+    spacerWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    spacerWidget->layout()->addWidget(counterLabel);
+
+    toolBar->addWidget(spacerWidget);
+    addToolBar(Qt::TopToolBarArea, toolBar);
 }
 
 void StreamWindow::keyPressEvent(QKeyEvent *event)
@@ -167,34 +220,20 @@ void StreamWindow::closeEvent(QCloseEvent *event)
 	{
 		if(session->IsConnected())
 		{
-			bool sleep = false;
-			switch(connect_info.settings->GetDisconnectAction())
-			{
-				case DisconnectAction::Ask: {
-					auto res = QMessageBox::question(this, tr("Disconnect Session"), tr("Do you want the Console to go into sleep mode?"),
-							QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-					switch(res)
-					{
-						case QMessageBox::Yes:
-							sleep = true;
-							break;
-						case QMessageBox::Cancel:
-							event->ignore();
-							return;
-						default:
-							break;
-					}
-					break;
-				}
-				case DisconnectAction::AlwaysSleep:
-					sleep = true;
-					break;
-				default:
-					break;
-			}
-			if(sleep)
-				session->GoToBed();
+            auto res = QMessageBox::question(this, tr("Terminar con la sesión"), tr("Quieres terminar ya de jugar?"),
+                    QMessageBox::Yes | QMessageBox::Cancel);
+            switch(res)
+            {
+                case QMessageBox::Yes:
+                    break;
+                case QMessageBox::Cancel:
+                    event->ignore();
+                    return;
+                default:
+                    break;
+            }
 		}
+        QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
 		session->Stop();
 	}
 }
@@ -208,7 +247,7 @@ void StreamWindow::SessionQuit(ChiakiQuitReason reason, const QString &reason_st
 			m += "\n" + tr("Reason") + ": \"" + reason_str + "\"";
 		QMessageBox::critical(this, tr("Session has quit"), m);
 	}
-	close();
+    close();
 }
 
 void StreamWindow::LoginPINRequested(bool incorrect)

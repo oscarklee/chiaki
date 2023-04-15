@@ -61,7 +61,9 @@ add_executable(chiaki WIN32
                 include/vpnclient.h
                 src/vpnclient.cpp
                 src/progressdialog.cpp
-                include/progressdialog.h)
+                include/progressdialog.h
+                include/firestoresettings.h
+                src/firestoresettings.cpp)
 target_include_directories(chiaki PRIVATE include)
 
 target_link_libraries(chiaki chiaki-lib)

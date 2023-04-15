@@ -39,58 +39,53 @@ Q_DECLARE_METATYPE(ChiakiLogLevel)
 Settings settings;
 DiscoveryManager discovery_manager;
 
-void AlertAndQuit(const QString &message)
-{
-    QMessageBox::critical(nullptr, "Error", message, QMessageBox::Ok);
-    QApplication::exit(1);
-}
-
-void FindHostAndStream()
+void FindHostAndStream(ProgressDialog& progressDialog)
 {
     QList<ManualHost> manual_hosts = settings.GetManualHosts();
     if (manual_hosts.isEmpty())
     {
-        AlertAndQuit("No host added");
+        progressDialog.setMessage("No host added");
         return;
     }
 
     ManualHost manual_host = manual_hosts.first();
     if (!settings.GetRegisteredHostRegistered(manual_host.GetMAC()))
     {
-        AlertAndQuit("No host registered");
+        progressDialog.setMessage("No host registered");
         return;
     }
 
-    QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, [manual_host]() {
+    QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, QApplication::instance(), [manual_host, &progressDialog]() {
         DiscoveryHost discovery_host = discovery_manager.GetHosts().first();
         if (discovery_host.host_addr != manual_host.GetHost())
         {
-            AlertAndQuit("No host discovered");
+            progressDialog.setMessage("No host discovered");
             return;
         }
 
         if (!manual_host.GetRegistered())
         {
-            AlertAndQuit("Host no registered");
+            progressDialog.setMessage("Host no registered");
             return;
         }
 
         if (discovery_host.state != ChiakiDiscoveryHostState::CHIAKI_DISCOVERY_HOST_STATE_READY)
         {
-            AlertAndQuit("Host is not ready");
+            progressDialog.setMessage("Host is not ready");
             return;
         }
 
-        RegisteredHost registered_host = settings.GetRegisteredHost(manual_host.GetMAC());
+        RegisteredHost registered_host = settings.GetRegisteredHost(discovery_host.GetHostMAC());
         StreamSessionConnectInfo info(
                 &settings,
                 registered_host.GetTarget(),
-                manual_host.GetHost(),
+                discovery_host.host_addr,
                 registered_host.GetRPRegistKey(),
                 registered_host.GetRPKey(),
                 false,
                 TransformMode::Fit);
 
+        progressDialog.accept();
         new StreamWindow(info);
     });
 
@@ -123,6 +118,9 @@ int real_main(int argc, char *argv[])
 	QApplication app(argc, argv);
     QApplication::setWindowIcon(QIcon(":/icons/chiaki.svg"));
 
+    // Load settings
+    settings.init();
+
     // VPN
     ProgressDialog progressDialog(app);
     OpenVPNClient client;
@@ -130,13 +128,11 @@ int real_main(int argc, char *argv[])
 
     QObject::connect(&client, &OpenVPNClient::logSignal, &progressDialog, &ProgressDialog::setMessage);
     if (true || client.init() == OpenVPNClient::CONNECTED) {
-        progressDialog.accept();
-
-        FindHostAndStream();
+        FindHostAndStream(progressDialog);
+        //progressDialog.accept();
         //MainWindow main_window(&settings);
         //main_window.show();
         return app.exec();
-
     } else {
         progressDialog.reject();
         return 1;

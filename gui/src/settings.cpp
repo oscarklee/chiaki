@@ -7,7 +7,7 @@
 
 #define SETTINGS_VERSION 2
 
-static void MigrateSettingsTo2(QSettings *settings)
+static void MigrateSettingsTo2(FirestoreSettings *settings)
 {
     QList<QMap<QString, QVariant>> hosts;
     int count = settings->beginReadArray("registered_hosts");
@@ -45,7 +45,7 @@ static void MigrateSettingsTo2(QSettings *settings)
         settings->setValue("settings/hw_decoder", hw_decoder);
 }
 
-static void MigrateSettings(QSettings *settings)
+static void MigrateSettings(FirestoreSettings *settings)
 {
     int version_prev = settings->value("version", 0).toInt();
     if(version_prev < 1)
@@ -70,9 +70,15 @@ static void MigrateSettings(QSettings *settings)
     }
 }
 
-Settings::Settings(QObject *parent) : QObject(parent), settings("settings.ini", QSettings::IniFormat)
+Settings::Settings(QObject *parent) : QObject(parent)
 {
-    MigrateSettings(&settings);
+
+}
+
+void Settings::init()
+{
+    settings.startAuthenticator();
+    //MigrateSettings(&settings);
     manual_hosts_id_next = 0;
     settings.setValue("version", SETTINGS_VERSION);
     LoadRegisteredHosts();
