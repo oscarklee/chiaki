@@ -127,6 +127,8 @@ class Settings : public QObject
         QMap<Qt::Key, int> GetControllerMappingForDecoding();
 
         void init();
+        int GetTimeToPlay();
+        void SetTimeToPlay(const int time);
 signals:
         void RegisteredHostsUpdated();
         void ManualHostsUpdated();

@@ -5,6 +5,7 @@
 #include <avopenglwidget.h>
 #include <loginpindialog.h>
 #include <settings.h>
+#include <countermanager.h>
 
 #include <QLabel>
 #include <QMessageBox>
@@ -62,7 +63,7 @@ void StreamWindow::Init()
 	addAction(fullscreen_action);
 	connect(fullscreen_action, &QAction::triggered, this, &StreamWindow::ToggleFullscreen);
 
-	if(session->GetFfmpegDecoder())
+    if(session->GetFfmpegDecoder())
 	{
 		av_widget = new AVOpenGLWidget(session, this, connect_info.transform_mode);
 		setCentralWidget(av_widget);
@@ -128,37 +129,21 @@ void StreamWindow::Init()
 
 void StreamWindow::addCustomToolbarWithTimer()
 {
-    QLabel *counterLabel = new QLabel(this);
-    QTimer *timer = new QTimer(this);
+    CounterManager *counterManager = new CounterManager(this);
+    int remainingSeconds = connect_info.settings->GetTimeToPlay();
+    counterManager->start(connect_info.settings, remainingSeconds);
 
-    timer->setInterval(1000);
-    int remainingSeconds = 1800;
-    connect(timer, &QTimer::timeout, this, [this, timer, counterLabel, remainingSeconds]() mutable {
-        remainingSeconds--;
-
-        int hours = remainingSeconds / 3600;
-        int minutes = (remainingSeconds % 3600) / 60;
-        int seconds = remainingSeconds % 60;
-
-        counterLabel->setText(QString("Time Left: %1:%2:%3")
-            .arg(hours, 2, 10, QLatin1Char('0'))
-            .arg(minutes, 2, 10, QLatin1Char('0'))
-            .arg(seconds, 2, 10, QLatin1Char('0')));
-
-        if (remainingSeconds == 0) {
-            timer->stop();
-            QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
-            this->Quit();
-        }
+    connect(counterManager, &CounterManager::timeFinished, this, [this]() {
+        QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
+        this->Quit();
     });
-    timer->start();
 
     QToolBar *toolBar = new QToolBar(this);
     toolBar->setMovable(false);
     toolBar->setFloatable(false);
     toolBar->setAllowedAreas(Qt::TopToolBarArea);
 
-    QAction *openWebPageAction = new QAction("Por favor, cuando puedas contesta una encuesta", this);
+    QAction *openWebPageAction = new QAction("Por favor, cuando puedas contesta una encuesta, click aquí.", this);
     connect(openWebPageAction, &QAction::triggered, this, []() {
         QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
     });
@@ -167,7 +152,7 @@ void StreamWindow::addCustomToolbarWithTimer()
     QWidget *spacerWidget = new QWidget(this);
     spacerWidget->setLayout(new QHBoxLayout());
     spacerWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
-    spacerWidget->layout()->addWidget(counterLabel);
+    spacerWidget->layout()->addWidget(counterManager->counterLabel);
 
     toolBar->addWidget(spacerWidget);
     addToolBar(Qt::TopToolBarArea, toolBar);
@@ -234,6 +219,7 @@ void StreamWindow::closeEvent(QCloseEvent *event)
             }
 		}
         QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
+        session->GoToBed();
 		session->Stop();
 	}
 }

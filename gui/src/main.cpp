@@ -44,38 +44,46 @@ void FindHostAndStream(ProgressDialog& progressDialog)
     QList<ManualHost> manual_hosts = settings.GetManualHosts();
     if (manual_hosts.isEmpty())
     {
-        progressDialog.setMessage("No host added");
+        progressDialog.setMessage("No console added");
         return;
     }
 
     ManualHost manual_host = manual_hosts.first();
     if (!settings.GetRegisteredHostRegistered(manual_host.GetMAC()))
     {
-        progressDialog.setMessage("No host registered");
+        progressDialog.setMessage("No console registered");
+        return;
+    }
+
+    if (!manual_host.GetRegistered())
+    {
+        progressDialog.setMessage("Manual console no registered");
         return;
     }
 
     QObject::connect(&discovery_manager, &DiscoveryManager::HostsUpdated, QApplication::instance(), [manual_host, &progressDialog]() {
-        DiscoveryHost discovery_host = discovery_manager.GetHosts().first();
+        QList<DiscoveryHost> discovery_hosts = discovery_manager.GetHosts();
+        if (discovery_hosts.empty()) {
+            progressDialog.setMessage("Waking up...");
+            return;
+        }
+
+        DiscoveryHost discovery_host = discovery_hosts.first();
         if (discovery_host.host_addr != manual_host.GetHost())
         {
-            progressDialog.setMessage("No host discovered");
-            return;
-        }
-
-        if (!manual_host.GetRegistered())
-        {
-            progressDialog.setMessage("Host no registered");
-            return;
-        }
-
-        if (discovery_host.state != ChiakiDiscoveryHostState::CHIAKI_DISCOVERY_HOST_STATE_READY)
-        {
-            progressDialog.setMessage("Host is not ready");
+            progressDialog.setMessage("No console discovered");
             return;
         }
 
         RegisteredHost registered_host = settings.GetRegisteredHost(discovery_host.GetHostMAC());
+        if (discovery_host.state != ChiakiDiscoveryHostState::CHIAKI_DISCOVERY_HOST_STATE_READY)
+        {
+            progressDialog.setMessage("Console is not ready, sending wakeup command...");
+            discovery_manager.SendWakeup(discovery_host.host_addr, registered_host.GetRPRegistKey(),
+                                         chiaki_target_is_ps5(registered_host.GetTarget()));
+            return;
+        }
+
         StreamSessionConnectInfo info(
                 &settings,
                 registered_host.GetTarget(),
@@ -90,6 +98,7 @@ void FindHostAndStream(ProgressDialog& progressDialog)
     });
 
     QString ip_address_str = manual_host.GetHost();
+    progressDialog.setMessage(QString("Looking for console '%1'...").arg(ip_address_str));
     discovery_manager.DiscoverDevice(ip_address_str);
 }
 
@@ -102,8 +111,8 @@ int real_main(int argc, char *argv[])
 	qRegisterMetaType<ChiakiRegistEventType>();
 	qRegisterMetaType<ChiakiLogLevel>();
 
-	QApplication::setOrganizationName("Chiaki");
-	QApplication::setApplicationName("Chiaki");
+    QApplication::setOrganizationName("Rental");
+    QApplication::setApplicationName("Rental");
 
 	ChiakiErrorCode err = chiaki_lib_init();
 	if(err != CHIAKI_ERR_SUCCESS)
@@ -126,15 +135,16 @@ int real_main(int argc, char *argv[])
     OpenVPNClient client;
     progressDialog.show();
 
+    //return app.exec();
+
     QObject::connect(&client, &OpenVPNClient::logSignal, &progressDialog, &ProgressDialog::setMessage);
-    if (true || client.init() == OpenVPNClient::CONNECTED) {
+    QObject::connect(&client, &OpenVPNClient::connected, QApplication::instance(), [&progressDialog]() {
         FindHostAndStream(progressDialog);
         //progressDialog.accept();
         //MainWindow main_window(&settings);
         //main_window.show();
-        return app.exec();
-    } else {
-        progressDialog.reject();
-        return 1;
-    }
+    });
+
+    client.start();
+    return app.exec();
 }

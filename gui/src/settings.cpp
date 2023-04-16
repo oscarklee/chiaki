@@ -346,6 +346,16 @@ void Settings::RemoveManualHost(int id)
     emit ManualHostsUpdated();
 }
 
+void Settings::SetTimeToPlay(const int time)
+{
+    settings.setValue("settings/time_left", time);
+}
+
+int Settings::GetTimeToPlay()
+{
+    return settings.value("settings/time_left", 1800).toInt();
+}
+
 QString Settings::GetChiakiControllerButtonName(int button)
 {
     switch(button)

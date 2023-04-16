@@ -3,7 +3,6 @@
 #include <QTcpSocket>
 #include <QProcess>
 #include <QDir>
-#include <QThread>
 #include <stdio.h>
 
 const QString OpenVPNClient::DISCONNECTED = "DISCONNECTED";
@@ -11,7 +10,7 @@ const QString OpenVPNClient::CONNECTING = "CONNECTING";
 const QString OpenVPNClient::CONNECTED = "CONNECTED";
 const QString OpenVPNClient::RECONNECTING = "RECONNECTING";
 
-OpenVPNClient::OpenVPNClient(QObject *parent) : QObject(parent)
+OpenVPNClient::OpenVPNClient(QObject *parent) : QThread(parent)
 {
     process = new QProcess();
     currentDir = new QString(QDir::currentPath());
@@ -19,6 +18,7 @@ OpenVPNClient::OpenVPNClient(QObject *parent) : QObject(parent)
     state = new QString(DISCONNECTED);
 
     connect(socket, &QTcpSocket::readyRead, this, &OpenVPNClient::onReadyRead);
+    connect(this, &OpenVPNClient::startTelnetConnectAndAuthenticate, this, &OpenVPNClient::telnetConnectAndAuthenticate, Qt::QueuedConnection);
 }
 
 OpenVPNClient::~OpenVPNClient()
@@ -27,7 +27,12 @@ OpenVPNClient::~OpenVPNClient()
     write("signal SIGTERM");
 }
 
-QString OpenVPNClient::init()
+void OpenVPNClient::run()
+{
+    emit startTelnetConnectAndAuthenticate();
+}
+
+void OpenVPNClient::telnetConnectAndAuthenticate()
 {
     if (!telnetConnect()) {
         log("Starting VPN Client");
@@ -51,10 +56,10 @@ QString OpenVPNClient::init()
     log("Connecting to the VPN");
     if (authenticate()) {
         log("VPN Connected");
-        return CONNECTED;
+        emit connected(CONNECTED);
     } else {
         log("VPN Connection error");
-        return getState();
+        emit connected(getState());
     }
 }
 

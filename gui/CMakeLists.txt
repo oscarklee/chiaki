@@ -63,7 +63,9 @@ add_executable(chiaki WIN32
                 src/progressdialog.cpp
                 include/progressdialog.h
                 include/firestoresettings.h
-                src/firestoresettings.cpp)
+                src/firestoresettings.cpp
+                include/countermanager.h
+                src/countermanager.cpp)
 target_include_directories(chiaki PRIVATE include)
 
 target_link_libraries(chiaki chiaki-lib)
@@ -102,7 +104,7 @@ set_target_properties(chiaki PROPERTIES
 
 add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/third-party/openvpn/openvpn.exe" $<TARGET_FILE_DIR:chiaki>)
 add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/third-party/openvpn/openvpn.ovpn" $<TARGET_FILE_DIR:chiaki>)
-add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/gui/settings.ini" $<TARGET_FILE_DIR:chiaki>)
+add_custom_command(TARGET chiaki POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/gui/chiaki.exe.manifest" $<TARGET_FILE_DIR:chiaki>)
 
 install(TARGETS chiaki
 		RUNTIME DESTINATION bin

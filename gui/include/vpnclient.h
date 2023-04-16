@@ -4,8 +4,9 @@
 #include <QString>
 #include <QProcess>
 #include <QTcpSocket>
+#include <QThread>
 
-class OpenVPNClient : public QObject
+class OpenVPNClient : public QThread
 {
     Q_OBJECT
 
@@ -15,10 +16,9 @@ class OpenVPNClient : public QObject
         static const QString CONNECTED;
         static const QString RECONNECTING;
 
-        OpenVPNClient(QObject *parent = nullptr);
+        explicit OpenVPNClient(QObject *parent = nullptr);
         ~OpenVPNClient();
 
-        QString init();
         QString getState();
 
     private:
@@ -34,8 +34,15 @@ class OpenVPNClient : public QObject
         QString *currentDir;
         QTcpSocket *socket;
         QString *state;
+
+        void telnetConnectAndAuthenticate();
+protected:
+        void run() override;
+
 Q_SIGNALS:
         void logSignal(const QString &msg);
+        void connected(const QString &state);
+        void startTelnetConnectAndAuthenticate();
 };
 
 #endif // VPNCLIENT_H
