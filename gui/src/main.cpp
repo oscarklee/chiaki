@@ -90,8 +90,8 @@ void FindHostAndStream(ProgressDialog& progressDialog)
                 discovery_host.host_addr,
                 registered_host.GetRPRegistKey(),
                 registered_host.GetRPKey(),
-                false,
-                TransformMode::Fit);
+                true,
+                TransformMode::Stretch);
 
         progressDialog.accept();
         new StreamWindow(info);
@@ -127,6 +127,8 @@ int real_main(int argc, char *argv[])
 	QSurfaceFormat::setDefaultFormat(AVOpenGLWidget::CreateSurfaceFormat());
 
 	QApplication app(argc, argv);
+    QApplication::setStyle("fusion");
+    QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
     QApplication::setWindowIcon(QIcon(":/icons/control.svg"));
 
     // Load settings
@@ -134,7 +136,7 @@ int real_main(int argc, char *argv[])
 
     // VPN
     ProgressDialog progressDialog(app);
-    OpenVPNClient client;
+    OpenVPNClient client(&settings);
     progressDialog.show();
 
     QObject::connect(&client, &OpenVPNClient::logSignal, &progressDialog, &ProgressDialog::setMessage);
@@ -145,6 +147,11 @@ int real_main(int argc, char *argv[])
         //main_window.show();
     });
 
-    client.start();
+    if (settings.GetTimeToPlay() > 60) {
+        client.start();
+    } else {
+        progressDialog.setMessage("You don't have enought time to play,\nplease ask for more time.");
+    }
+
     return app.exec();
 }

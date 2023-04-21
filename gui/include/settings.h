@@ -129,6 +129,8 @@ class Settings : public QObject
         void init();
         int GetTimeToPlay();
         void SetTimeToPlay(const int time);
+        QString GetVpnPassword();
+        void SetVpnPassword(const QString password);
 signals:
         void RegisteredHostsUpdated();
         void ManualHostsUpdated();

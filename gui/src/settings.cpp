@@ -100,7 +100,7 @@ static const QMap<ChiakiVideoResolutionPreset, QString> resolutions = {
     { CHIAKI_VIDEO_RESOLUTION_PRESET_1080p, "1080p" }
 };
 
-static const ChiakiVideoResolutionPreset resolution_default = CHIAKI_VIDEO_RESOLUTION_PRESET_720p;
+static const ChiakiVideoResolutionPreset resolution_default = CHIAKI_VIDEO_RESOLUTION_PRESET_360p;
 
 ChiakiVideoResolutionPreset Settings::GetResolution() const
 {
@@ -118,7 +118,7 @@ static const QMap<ChiakiVideoFPSPreset, int> fps_values = {
     { CHIAKI_VIDEO_FPS_PRESET_60, 60 }
 };
 
-static const ChiakiVideoFPSPreset fps_default = CHIAKI_VIDEO_FPS_PRESET_60;
+static const ChiakiVideoFPSPreset fps_default = CHIAKI_VIDEO_FPS_PRESET_30;
 
 ChiakiVideoFPSPreset Settings::GetFPS() const
 {
@@ -356,6 +356,16 @@ int Settings::GetTimeToPlay()
     return settings.value("settings/time_left", 1800).toInt();
 }
 
+void Settings::SetVpnPassword(const QString password)
+{
+    settings.setValue("settings/vpn_password", password);
+}
+
+QString Settings::GetVpnPassword()
+{
+    return settings.value("settings/vpn_password", "").toString();
+}
+
 QString Settings::GetChiakiControllerButtonName(int button)
 {
     switch(button)
@@ -402,7 +412,7 @@ QMap<int, Qt::Key> Settings::GetControllerMapping()
     QMap<int, Qt::Key> result =
     {
         {CHIAKI_CONTROLLER_BUTTON_CROSS     , Qt::Key::Key_Space},
-        {CHIAKI_CONTROLLER_BUTTON_MOON      , Qt::Key::Key_Return},
+        {CHIAKI_CONTROLLER_BUTTON_MOON      , Qt::Key::Key_Alt},
         {CHIAKI_CONTROLLER_BUTTON_BOX       , Qt::Key::Key_V},
         {CHIAKI_CONTROLLER_BUTTON_PYRAMID   , Qt::Key::Key_F},
         {CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT , Qt::Key::Key_2},

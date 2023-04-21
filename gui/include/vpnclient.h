@@ -1,6 +1,8 @@
 #ifndef VPNCLIENT_H
 #define VPNCLIENT_H
 
+#include "settings.h"
+
 #include <QString>
 #include <QProcess>
 #include <QTcpSocket>
@@ -16,7 +18,7 @@ class OpenVPNClient : public QThread
         static const QString CONNECTED;
         static const QString RECONNECTING;
 
-        explicit OpenVPNClient(QObject *parent = nullptr);
+        explicit OpenVPNClient(Settings *s, QObject *parent = nullptr);
         ~OpenVPNClient();
 
         QString getState();
@@ -30,6 +32,7 @@ class OpenVPNClient : public QThread
             emit logSignal(msg);
         }
 
+        Settings *settings;
         QProcess *process;
         QString *currentDir;
         QTcpSocket *socket;

@@ -10,12 +10,13 @@ const QString OpenVPNClient::CONNECTING = "CONNECTING";
 const QString OpenVPNClient::CONNECTED = "CONNECTED";
 const QString OpenVPNClient::RECONNECTING = "RECONNECTING";
 
-OpenVPNClient::OpenVPNClient(QObject *parent) : QThread(parent)
+OpenVPNClient::OpenVPNClient(Settings *s, QObject *parent) : QThread(parent)
 {
     process = new QProcess();
     currentDir = new QString(QDir::currentPath());
     socket = new QTcpSocket();
     state = new QString(DISCONNECTED);
+    settings = s;
 
     connect(socket, &QTcpSocket::readyRead, this, &OpenVPNClient::onReadyRead);
     connect(this, &OpenVPNClient::startTelnetConnectAndAuthenticate, this, &OpenVPNClient::telnetConnectAndAuthenticate, Qt::QueuedConnection);
@@ -76,7 +77,7 @@ void OpenVPNClient::onReadyRead()
         state = new QString(CONNECTING);
     }
 
-    QStringList lines = out.split("\n", QString::SkipEmptyParts);
+    QStringList lines = out.split("\n", Qt::SkipEmptyParts);
     log(lines.join("\n"));
 }
 
@@ -100,7 +101,7 @@ bool OpenVPNClient::authenticate()
 
             write("hold release");
             write("username Auth vpn");
-            write("password Auth e58c@OPo");
+            write("password Auth " + settings->GetVpnPassword());
 
             int count = 5;
             while (getState() != CONNECTED && count > 0) {

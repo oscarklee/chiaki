@@ -34,14 +34,14 @@ ProgressDialog::ProgressDialog(QApplication &app, QWidget *parent)
     // Message
     m_messageLabel = new QPlainTextEdit(this);
     m_messageLabel->setReadOnly(true);
-    m_messageLabel->setStyleSheet("background-color: transparent; color: green;");
+    m_messageLabel->setStyleSheet("background-color: transparent; color: white; font-weight: bold;");
 
     QScrollArea *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setWidget(m_messageLabel);
     scrollArea->setFixedWidth(width() - 30);
     scrollArea->setFixedHeight(height() - 30);
-    scrollArea->setStyleSheet("background-color: transparent;");
+    scrollArea->setStyleSheet("background-color: transparent; border: none;");
 
     // Progress bar
     m_progressBar = new QProgressBar(this);
@@ -50,7 +50,18 @@ ProgressDialog::ProgressDialog(QApplication &app, QWidget *parent)
     m_progressBar->hide();
 
     // Cancel button
-    m_cancelButton = new QPushButton("Cancel & Exit", this);
+    m_cancelButton = new QPushButton("Exit", this);
+    m_cancelButton->setStyleSheet("QPushButton {"
+                                  "background-color: SlateGray;"
+                                  "font-weight: bold;"
+                                  "color: white;"
+                                  "border: none;"
+                                  "padding: 10px 13px;"
+                                  "border-radius: 0px;"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "background-color: #4e5965;"
+                                  "}");
 
     // Main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -69,7 +80,7 @@ ProgressDialog::ProgressDialog(QApplication &app, QWidget *parent)
     setModal(true);
     setWindowModality(Qt::ApplicationModal);
     //setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint);
-    setWindowFlags(windowFlags() & ~Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+    setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
 }
 
 void ProgressDialog::setMessage(const QString &message)

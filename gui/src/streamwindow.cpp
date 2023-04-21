@@ -134,8 +134,10 @@ void StreamWindow::addCustomToolbarWithTimer()
     counterManager->start(connect_info.settings, remainingSeconds);
 
     connect(counterManager, &CounterManager::timeFinished, this, [this]() {
-        QDesktopServices::openUrl(QUrl("https://forms.gle/HuMhVJg7AzjTg3pTA"));
-        this->Quit();
+        if(session) {
+            session->GoToBed();
+            session->Stop();
+        }
     });
 
     QToolBar *toolBar = new QToolBar(this);
