@@ -286,9 +286,9 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_stream_connection_run(ChiakiStreamConnectio
 
 	while(true)
 	{
-		err = chiaki_cond_timedwait_pred(&stream_connection->state_cond, &stream_connection->state_mutex, HEARTBEAT_INTERVAL_MS, state_finished_cond_check, stream_connection);
-		if(err != CHIAKI_ERR_TIMEOUT)
-			break;
+        err = chiaki_cond_timedwait_pred(&stream_connection->state_cond, &stream_connection->state_mutex, HEARTBEAT_INTERVAL_MS, state_finished_cond_check, stream_connection);
+        if(err != CHIAKI_ERR_TIMEOUT)
+            break;
 
 		err = stream_connection_send_heartbeat(stream_connection);
 		if(err != CHIAKI_ERR_SUCCESS)

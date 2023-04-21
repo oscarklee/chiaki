@@ -8,6 +8,7 @@
         <file>chiaki_macos.svg</file>
         <file>console-ps4.svg</file>
         <file>console-ps5.svg</file>
+        <file>control.svg</file>
     </qresource>
     <qresource prefix="/images">
         <file>background.jpg</file>

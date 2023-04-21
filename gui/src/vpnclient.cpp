@@ -76,7 +76,8 @@ void OpenVPNClient::onReadyRead()
         state = new QString(CONNECTING);
     }
 
-    log(out);
+    QStringList lines = out.split("\n", QString::SkipEmptyParts);
+    log(lines.join("\n"));
 }
 
 bool OpenVPNClient::telnetConnect()

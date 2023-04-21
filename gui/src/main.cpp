@@ -95,6 +95,8 @@ void FindHostAndStream(ProgressDialog& progressDialog)
 
         progressDialog.accept();
         new StreamWindow(info);
+        QObject::disconnect(&discovery_manager, &DiscoveryManager::HostsUpdated, QApplication::instance(), nullptr);
+
     });
 
     QString ip_address_str = manual_host.GetHost();
@@ -125,7 +127,7 @@ int real_main(int argc, char *argv[])
 	QSurfaceFormat::setDefaultFormat(AVOpenGLWidget::CreateSurfaceFormat());
 
 	QApplication app(argc, argv);
-    QApplication::setWindowIcon(QIcon(":/icons/chiaki.svg"));
+    QApplication::setWindowIcon(QIcon(":/icons/control.svg"));
 
     // Load settings
     settings.init();
@@ -134,8 +136,6 @@ int real_main(int argc, char *argv[])
     ProgressDialog progressDialog(app);
     OpenVPNClient client;
     progressDialog.show();
-
-    //return app.exec();
 
     QObject::connect(&client, &OpenVPNClient::logSignal, &progressDialog, &ProgressDialog::setMessage);
     QObject::connect(&client, &OpenVPNClient::connected, QApplication::instance(), [&progressDialog]() {
